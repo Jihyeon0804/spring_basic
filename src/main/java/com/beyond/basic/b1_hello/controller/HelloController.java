@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/hello")
 public class HelloController {
 
-    // get 요청의 case들
+    // #### get 요청의 case들 ####
     // case1. 서버가 사용자에게 단순 String 데이터 return - @ResponseBody가 있을 때
     @GetMapping("")                       // 아래 메서드에 대한 서버의 엔드 포인트를 설정
     // @ResponseBody가 없고 return 타입이 String인 경우 서버는 templates 폴더 밑에 helloworld.html 파일을 찾아서 return
@@ -103,7 +103,7 @@ public class HelloController {
     }
 
 
-    // post 요청의 case들 : url 인코딩 방식과 multipart-formdata, json
+    // #### post 요청의 case들 : url 인코딩 방식과 multipart-formdata, json ####
     // case1. text만 있는 form-data  형식
     // 형식 : body에 name=xxx&email=xxx
     @GetMapping("/form-view")
@@ -193,17 +193,22 @@ public class HelloController {
         return "OK";
     }
 
-    // case6. json(text)과 file을 같이 처리할 때 : text 구조가 복잡하여 피치 못하게 json을 써야하는 경우
+    // case6. json(text)과 file을 같이 처리할 때 : text 구조가 복잡하여 피치 못하게 json을 써야하는 경우 (case2-1. 과 비교)
     // 데이터 형식 : hello={name:"xxx", email:"xxx"}&photo=이미지.jpg
-    // 결론은 단순 json 구조가 아닌, multipart-formdata 구조 안에 json을 넣는 구조
+    // 결론은 단순 json 구조가 아닌, multipart-form-data 구조 안에 json을 넣는 구조
     @GetMapping("/axios-json-file-view")
     public String axiosJsonFileView() {
-        return "axios-nested-json-view";
+        return "axios-json-file-view";
     }
 
     @PostMapping("/axios-json-file-view")
     @ResponseBody
-    public String axiosJsonFileViewPost() {
+    // json이 아닌 일반 key-value 형식의 data인 경우는 ModelAttribute 형식
+    // json과 file을 함께 처리해야할 때 RequestPart 일반적으로 활용
+    public String axiosJsonFileViewPost(@RequestPart("hello") Hello hello,
+                                        @RequestPart("photo") MultipartFile photo) {
+        System.out.println(hello);
+        System.out.println(photo.getOriginalFilename());
         return "OK";
     }
 
