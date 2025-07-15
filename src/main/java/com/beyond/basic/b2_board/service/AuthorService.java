@@ -5,18 +5,22 @@ import com.beyond.basic.b2_board.dto.AuthorCreateDTO;
 import com.beyond.basic.b2_board.dto.AuthorDetailDTO;
 import com.beyond.basic.b2_board.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.dto.AuthorUpdatePwDTO;
+import com.beyond.basic.b2_board.repository.AuthorJdbcRepository;
 import com.beyond.basic.b2_board.repository.AuthorMemoryRepository;
 import com.beyond.basic.b2_board.repository.AuthorRepositoryInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-// ‼️@Transactional 하고 롤백에 대한 추가 설명 필요‼️
+
+@Transactional      // 스프링에서 메서드 단위로 트랜잭션 처리하고, 만약 예외(unchecked) 발생 시 자동 롤백 처리 지원
 @Service            // transaction 처리가 없는 경우에는 @Component로 대체 가능
 @RequiredArgsConstructor
 public class AuthorService {
@@ -41,13 +45,13 @@ public class AuthorService {
 
     // ⭐방법3) @RequiredArgsConstructor 사용 -> 반드시 초기화되어야 하는 필드(final 등)를 대상으로 생성자를 자동 생성
     // 다형성 설계는 불가
-    private final AuthorMemoryRepository authorMemoryRepository;
+    private final AuthorJdbcRepository authorRepository;
 
     // 회원 가입
     // 객체 조립은 서비스 담당
     public void save(AuthorCreateDTO authorCreateDTO) {
         // 이메일 중복 검증
-        if (authorMemoryRepository.findByEmail(authorCreateDTO.getEmail()).isPresent()) {
+        if (authorRepository.findByEmail(authorCreateDTO.getEmail()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 //        this.authorRepository.save(회원객체);
@@ -56,26 +60,34 @@ public class AuthorService {
 //            throw new IllegalArgumentException("비밀번호가 너무 짧습니다.");
 //        }
 
-        Author author = new Author(authorCreateDTO.getName(), authorCreateDTO.getEmail(), authorCreateDTO.getPassword());
-        this.authorMemoryRepository.save(author);
+//        Author author = new Author(authorCreateDTO.getName(), authorCreateDTO.getEmail(), authorCreateDTO.getPassword());
+        // toEntity 패턴을 통해 Author 객체 조립을 공통화
+        Author author = authorCreateDTO.authorToEntity();
+        this.authorRepository.save(author);
     }
 
+    @Transactional(readOnly = true)
     public List<AuthorListDTO> findAll() {
-        List<AuthorListDTO> dtoList = new ArrayList<>();
-        for (Author a : authorMemoryRepository.findAll()) {
-            AuthorListDTO  dto = new AuthorListDTO(a.getId(), a.getName(), a.getEmail());
-            dtoList.add(dto);
-        }
-        return dtoList;
+//        List<AuthorListDTO> dtoList = new ArrayList<>();
+//        for (Author a : authorMemoryRepository.findAll()) {
+//            AuthorListDTO dto = new AuthorListDTO(a.getId(), a.getName(), a.getEmail());
+//            AuthorListDTO dto = author.listFromEntity();
+//            dtoList.add(dto);
+//        }
+//        return dtoList;
+        return authorRepository.findAll().stream().map(a -> a.listFromEntity()).collect(Collectors.toList());
 //        return authorMemoryRepository.findAll();
     }
 
     // 회원 상세 조회 by id
 //    public Author findById(Long id) throws NoSuchElementException {
     public AuthorDetailDTO findById(Long id) throws NoSuchElementException {
-        Author author = authorMemoryRepository.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 id 입니다."));
-        AuthorDetailDTO dto = new AuthorDetailDTO(author.getId(), author.getName(), author.getEmail());
+        Author author = authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 id 입니다."));
+//        AuthorDetailDTO dto = new AuthorDetailDTO(author.getId(), author.getName(), author.getEmail());
+//        AuthorDetailDTO dto = author.detailFromEntity();
+        AuthorDetailDTO dto = AuthorDetailDTO.fromEntity(author);
         return dto;
+
 
         // optional 객체를 꺼내오는 것도 service 의 역할
         // 예외도 service 에서 발생시키는 이유 -> spring 에서 예외는 rollback의 기준이 되기 때문
@@ -89,14 +101,14 @@ public class AuthorService {
     // 비밀번호 변경
     public void updatePassword(AuthorUpdatePwDTO authorUpdatePwDTO) {
         // setter 없으니 수정 불가 -> Author 도메인에 메서드 생성
-        Author author = authorMemoryRepository.findByEmail(authorUpdatePwDTO.getEmail())
+        Author author = authorRepository.findByEmail(authorUpdatePwDTO.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 이메일입니다."));
         author.updatePw(authorUpdatePwDTO.getPassword());
     }
 
     // 회원 탈퇴
     public void delete(Long id) {
-        authorMemoryRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
-        authorMemoryRepository.delete(id);
+        authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
+        authorRepository.delete(id);
     }
 }
