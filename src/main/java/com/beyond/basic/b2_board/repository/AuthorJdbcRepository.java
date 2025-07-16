@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,26 @@ public class AuthorJdbcRepository {
 
     // 회원 목록 조회
     public List<Author> findAll() {
-        return null;
+        List<Author> authorList = new ArrayList<>();
+        try {
+            Connection connection = dataSource.getConnection();
+            String sql = "select * from author";
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Long id = rs.getLong("id");
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String password = rs.getString("password");
+                Author author = new Author(id, name, email, password);
+                authorList.add(author);
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+
+        }
+        return authorList;      // 데이터 없으면 [] return
     }
 
     // 회원 상세 조회 by id
@@ -58,17 +78,17 @@ public class AuthorJdbcRepository {
             ps.setLong(1, inputId);
             // ResultSet 테이블 형태의 데이터
             ResultSet rs = ps.executeQuery();
-            rs.next();      // 데이터
-            
-            // 데이터 꺼내기
-            Long id = rs.getLong("id");
-            String name = rs.getString("name");
-            String email = rs.getString("email");
-            String password = rs.getString("password");
+            if (rs.next()) {      // 데이터 (값이 없으면 null 반환)
 
-            // 재조립
-            author = new Author(id, name, email, password);
+                // 데이터 꺼내기
+                Long id = rs.getLong("id");
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String password = rs.getString("password");
 
+                // 재조립
+                author = new Author(id, name, email, password);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -86,7 +106,7 @@ public class AuthorJdbcRepository {
             ps.setString(1, inputEmail);
             // ResultSet 테이블 형태의 데이터
             ResultSet rs = ps.executeQuery();
-            
+
             // 신규 사용자는 데이터가 없기 때문에 error 발생하기 때문에 if 문으로 체크해주어야 함
             if (rs.next()) {        // rs.next() 하는 순간 포인터가 컬럼에서 첫번째 데이터로 바뀜
                 // 데이터 꺼내기
@@ -105,10 +125,21 @@ public class AuthorJdbcRepository {
         return Optional.ofNullable(author);
     }
 
-    // 회원 정보 수정 repository에서 메서드 필요X (서비스 계층에서 진행)
+    // 회원 정보(비밀번호) 수정
+
 
     // 회원 탈퇴
     public void delete(Long id) {
-
+        try {
+            Connection connection = dataSource.getConnection();
+            String sql = "delete from author where id = ?";
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setLong(1, id);
+//            ps.executeQuery();          // 조회
+            ps.executeUpdate();         // 추가/수정/삭제
+        } catch (SQLException e) {
+            // transaction 상황에서 unchecked 예외는 spring 에서 롤백의 기준이 된다
+            throw new RuntimeException(e);
+        }
     }
 }
