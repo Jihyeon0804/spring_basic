@@ -3,10 +3,7 @@ package com.beyond.basic.b2_board.domain;
 import com.beyond.basic.b2_board.dto.AuthorDetailDTO;
 import com.beyond.basic.b2_board.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.repository.AuthorMemoryRepository;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,8 +27,11 @@ public class Author {
     // GenerationType.IDENTITY : auto_increment, GenerationType.AUTO : id 생성 전략을 jpa 에게 자동 설정하도록 위임하는 것
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    // 컬럼에 별다른 설정이 없을 경우 default varchar(255)
     private String name;
+    @Column(length = 50, unique = true, nullable = false)
     private String email;
+//    @Column(name = "pw")  :   되도록이면 컬럼명과 변수명을 일치시키는 것이 개발의 혼선을 줄일 수 있음.
     private String password;
 //    private String test;
 //    private String test2;
