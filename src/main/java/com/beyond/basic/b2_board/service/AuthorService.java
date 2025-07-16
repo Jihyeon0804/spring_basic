@@ -42,7 +42,8 @@ public class AuthorService {
 
     // ⭐방법3) @RequiredArgsConstructor 사용 -> 반드시 초기화되어야 하는 필드(final 등)를 대상으로 생성자를 자동 생성
     // 다형성 설계는 불가
-    private final AuthorMybatisRepository authorRepository;
+//    private final AuthorMybatisRepository authorRepository;
+    private final AuthorRepository authorRepository;
 
     // 회원 가입
     // 객체 조립은 서비스 담당
@@ -105,11 +106,14 @@ public class AuthorService {
         // dirty checking : 객체를 수정한 후에 별도의 update 쿼리 발생시키지 않아도
         // 영속성 컨텍스트에 의해 객체 변경 사항 자동 DB 반영
         author.updatePw(authorUpdatePwDTO.getPassword());
+        System.out.println(author.getPassword());
     }
 
     // 회원 탈퇴
     public void delete(Long id) {
-        authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
-        authorRepository.delete(id);
+        Author author = authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
+        authorRepository.delete(author);
+//        authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
+//        authorRepository.delete(id);
     }
 }
