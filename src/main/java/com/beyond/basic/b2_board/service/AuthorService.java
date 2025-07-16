@@ -5,18 +5,15 @@ import com.beyond.basic.b2_board.dto.AuthorCreateDTO;
 import com.beyond.basic.b2_board.dto.AuthorDetailDTO;
 import com.beyond.basic.b2_board.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.dto.AuthorUpdatePwDTO;
-import com.beyond.basic.b2_board.repository.AuthorJdbcRepository;
-import com.beyond.basic.b2_board.repository.AuthorMemoryRepository;
-import com.beyond.basic.b2_board.repository.AuthorRepositoryInterface;
+//import com.beyond.basic.b2_board.repository.AuthorJdbcRepository;
+import com.beyond.basic.b2_board.repository.AuthorMybatisRepository;
+import com.beyond.basic.b2_board.repository.AuthorRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -45,7 +42,7 @@ public class AuthorService {
 
     // ⭐방법3) @RequiredArgsConstructor 사용 -> 반드시 초기화되어야 하는 필드(final 등)를 대상으로 생성자를 자동 생성
     // 다형성 설계는 불가
-    private final AuthorJdbcRepository authorRepository;
+    private final AuthorMybatisRepository authorRepository;
 
     // 회원 가입
     // 객체 조립은 서비스 담당
@@ -81,12 +78,14 @@ public class AuthorService {
 
     // 회원 상세 조회 by id
 //    public Author findById(Long id) throws NoSuchElementException {
+//    NoSuchElementException : Collection 이나 Optional 객체의 요소 없을 시 발생
+    @Transactional(readOnly = true)
     public AuthorDetailDTO findById(Long id) throws NoSuchElementException {
         Author author = authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 id 입니다."));
 //        AuthorDetailDTO dto = new AuthorDetailDTO(author.getId(), author.getName(), author.getEmail());
-//        AuthorDetailDTO dto = author.detailFromEntity();
-        AuthorDetailDTO dto = AuthorDetailDTO.fromEntity(author);
-        return dto;
+//        AuthorDetailDTO dto1 = author.detailFromEntity();
+        AuthorDetailDTO dto2 = AuthorDetailDTO.fromEntity(author);
+        return dto2;
 
 
         // optional 객체를 꺼내오는 것도 service 의 역할
@@ -103,6 +102,8 @@ public class AuthorService {
         // setter 없으니 수정 불가 -> Author 도메인에 메서드 생성
         Author author = authorRepository.findByEmail(authorUpdatePwDTO.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 이메일입니다."));
+        // dirty checking : 객체를 수정한 후에 별도의 update 쿼리 발생시키지 않아도
+        // 영속성 컨텍스트에 의해 객체 변경 사항 자동 DB 반영
         author.updatePw(authorUpdatePwDTO.getPassword());
     }
 
