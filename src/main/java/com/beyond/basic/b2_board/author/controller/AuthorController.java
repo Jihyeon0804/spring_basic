@@ -1,16 +1,16 @@
-package com.beyond.basic.b2_board.controller;
+package com.beyond.basic.b2_board.author.controller;
 
-import com.beyond.basic.b2_board.domain.Author;
-import com.beyond.basic.b2_board.dto.*;
-import com.beyond.basic.b2_board.service.AuthorService;
+import com.beyond.basic.b2_board.author.dto.AuthorCreateDTO;
+import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
+import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
+import com.beyond.basic.b2_board.author.dto.CommonDTO;
+import com.beyond.basic.b2_board.author.service.AuthorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @RestController             // @Controller + @ResponseBody : 데이터만 주고 받음, 화면X
 @RequiredArgsConstructor    // 생성자 주입 (반드시 final 붙여주어야 함)
