@@ -28,7 +28,18 @@ public class AuthorCreateDTO {
     // 문자열로 값이 넘어오면 Role에 값으로 매핑
     private Role role = Role.USER;
 
+    // 로그인 시 사용 (회원 가입 시 받는 정보를 Author 에 담기)
+//    public Author authorToEntity() {
+//        return new Author(this.name, this.email, this.password, this.role);
+//    }
+
     public Author authorToEntity() {
-        return new Author(this.name, this.email, this.password);
+        // ⭐ 빌더 패턴은 매개 변수의 개수와 매개 변수의 순서에 상관 없이 객체 생성 가능
+        return Author.builder()
+                .name(this.name)
+                .email(this.email)
+                .password(this.password)
+                .role(this.role)
+                .build();
     }
 }
