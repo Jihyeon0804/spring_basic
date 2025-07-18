@@ -1,13 +1,12 @@
-package com.beyond.basic.b2_board.service;
+package com.beyond.basic.b2_board.author.service;
 
-import com.beyond.basic.b2_board.domain.Author;
-import com.beyond.basic.b2_board.dto.AuthorCreateDTO;
-import com.beyond.basic.b2_board.dto.AuthorDetailDTO;
-import com.beyond.basic.b2_board.dto.AuthorListDTO;
-import com.beyond.basic.b2_board.dto.AuthorUpdatePwDTO;
+import com.beyond.basic.b2_board.author.domain.Author;
+import com.beyond.basic.b2_board.author.dto.AuthorCreateDTO;
+import com.beyond.basic.b2_board.author.dto.AuthorDetailDTO;
+import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
+import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
 //import com.beyond.basic.b2_board.repository.AuthorJdbcRepository;
-import com.beyond.basic.b2_board.repository.AuthorMybatisRepository;
-import com.beyond.basic.b2_board.repository.AuthorRepository;
+import com.beyond.basic.b2_board.author.repository.AuthorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
