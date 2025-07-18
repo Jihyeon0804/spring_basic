@@ -1,7 +1,6 @@
 package com.beyond.basic.b2_board.post.domain;
 
 import com.beyond.basic.b2_board.author.domain.Author;
-import com.beyond.basic.b2_board.post.dto.PostListDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,10 +29,4 @@ public class Post {
     @JoinColumn(name = "author_id")         // FK 관계성 설정 어노테이션
     private Author author;
 
-    public PostListDTO listFromEntity() {
-        return PostListDTO.builder()
-                .id(this.id)
-                .title(this.title)
-                .build();
-    }
 }
