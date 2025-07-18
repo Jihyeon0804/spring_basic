@@ -5,8 +5,8 @@ import com.beyond.basic.b2_board.author.dto.AuthorCreateDTO;
 import com.beyond.basic.b2_board.author.dto.AuthorDetailDTO;
 import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
-//import com.beyond.basic.b2_board.repository.AuthorJdbcRepository;
 import com.beyond.basic.b2_board.author.repository.AuthorRepository;
+import com.beyond.basic.b2_board.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +43,7 @@ public class AuthorService {
     // 다형성 설계는 불가
 //    private final AuthorMybatisRepository authorRepository;
     private final AuthorRepository authorRepository;
+    private final PostRepository postRepository;
 
     // 회원 가입
     // 객체 조립은 서비스 담당
@@ -53,9 +54,9 @@ public class AuthorService {
         }
 //        this.authorRepository.save(회원객체);
         // 비밀번호 길이 검증
-//        if (authorCreateDTO.getPassword().length() <= 8) {
-//            throw new IllegalArgumentException("비밀번호가 너무 짧습니다.");
-//        }
+        if (authorCreateDTO.getPassword().length() <= 8) {
+            throw new IllegalArgumentException("비밀번호가 너무 짧습니다.");
+        }
 
 //        Author author = new Author(authorCreateDTO.getName(), authorCreateDTO.getEmail(), authorCreateDTO.getPassword());
         // toEntity 패턴을 통해 Author 객체 조립을 공통화
@@ -84,8 +85,15 @@ public class AuthorService {
         Author author = authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 id 입니다."));
 //        AuthorDetailDTO dto = new AuthorDetailDTO(author.getId(), author.getName(), author.getEmail());
 //        AuthorDetailDTO dto1 = author.detailFromEntity();
-        AuthorDetailDTO dto2 = AuthorDetailDTO.fromEntity(author);
-        return dto2;
+        
+        // 연관 관계 설정 없이 직접 조회하여 postCount 값 찾는 경우
+        int postCount = postRepository.findByAuthorId(id).size();
+        int postCount2 = postRepository.findByAuthor(author).size();
+        AuthorDetailDTO dto2 = AuthorDetailDTO.fromEntity(author, postCount);
+
+        // ⭐ @OneToMany 연관 관계 설정을 통해 postCount 값 찾는 경우
+        AuthorDetailDTO dto3 = AuthorDetailDTO.fromEntity(author);
+        return dto3;
 
 
         // optional 객체를 꺼내오는 것도 service 의 역할
