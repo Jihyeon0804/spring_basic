@@ -25,12 +25,15 @@ repositories {
 
 dependencies {
 	// 아래 의존성은 db 연결 및 관리를 위한 의존성 : jdbc, mybatis, jpa
-//	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+	// db 의존성은 바로 db 정보를 찾아 연결을 시도하므로, db 연결 정보 사전 설정 필요
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+	// 값 검증을 위한 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// java와 db를 연결해주는 driver
-//	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
 	// spring 웹서비스를 위한 기본 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-web'
