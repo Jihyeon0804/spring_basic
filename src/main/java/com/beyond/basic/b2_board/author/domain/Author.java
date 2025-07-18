@@ -2,15 +2,17 @@ package com.beyond.basic.b2_board.author.domain;
 
 import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.common.BaseTimeEntity;
+import com.beyond.basic.b2_board.post.domain.Post;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // JPA를 사용할 경우 @Entity를 반드시 붙어야하는 어노테이션 (매핑할 기준이 되는 Entity 설정을 위해 사용)
 // JPA의 EntityManager 에게 객체를 위임하기 위한 어노테이션
 // EntityManager는 영속성 컨텍스트(엔티티의 현재 상황)를 통해 DB 데이터 관리
+@Builder
 @Entity
 @Getter
 @NoArgsConstructor
@@ -29,10 +31,19 @@ public class Author extends BaseTimeEntity {
     private String email;
 //    @Column(name = "pw")  :   되도록이면 컬럼명과 변수명을 일치시키는 것이 개발의 혼선을 줄일 수 있음.
     private String password;
-    private Role role;
+    @Enumerated(EnumType.STRING)        // db의 문자열 형태로 저장
+    @Builder.Default                    // 빌터 패턴에서 변수 초기화 (디폴트 값) 설정 시 @Builder.Default 필수
+    private Role role = Role.USER;      // 기본값을 user로 설정, 값이 할당되면 해당 값으로 세팅
+
+    // @OneToMany는 선택 사항, @ManyToOne과 달리 fetch 옵션의 default가 FetchType.LAZY
+    // mappedBy 에는 ManyToOne 쪽에 변수명을 문자열로 지정
+    // mappedBy를 지정해야 하는 이유는 FK 관리를 매핑되어 있는 (Post) 쪽에서 한다는 의미 => 연관 관계의 주인 설정
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    @Builder.Default
+    List<Post> postList = new ArrayList<>();            // @OneToMany 설정 시 List 초기화 필수, @Builder.Default 설정 필수
     
     // BaseTimeEntity에 공통화 시킴
-//    // 컬럼명에 캐멀 케이스 사용 시, db에는 created_time으로 컬럼 생성
+//    // 컬럼명에 캐멀 케이스 사용 시, db 에는 created_time 으로 컬럼 생성
 //    @CreationTimestamp
 //    private LocalDateTime createdTime;
 //    @UpdateTimestamp
@@ -40,12 +51,11 @@ public class Author extends BaseTimeEntity {
 //    private String test;
 //    private String test2;
 
-    public Author(String name, String email, String password, Role role) {
+    public Author(String name, String email, String password) {
 //        this.id = AuthorMemoryRepository.id;          // db 연결 시 필요X
         this.name = name;
         this.email = email;
         this.password = password;
-        this.role = role;
     }
 
     public void updatePw(String password) {
