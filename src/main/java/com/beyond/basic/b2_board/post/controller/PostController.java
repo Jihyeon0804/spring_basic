@@ -7,6 +7,10 @@ import com.beyond.basic.b2_board.post.dto.PostListDTO;
 import com.beyond.basic.b2_board.post.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,9 +33,20 @@ public class PostController {
 
     // 게시글 목록 조회
     @GetMapping("/list")
+//    public ResponseEntity<?> findAll() {
     public ResponseEntity<?> findAll() {
-        List<PostListDTO> postListDTo = postService.findAll();
-        return new ResponseEntity<>(new CommonDTO(postListDTo, HttpStatus.OK.value(), "OK"), HttpStatus.OK);
+        List<PostListDTO> postListDTO = postService.findAll();
+
+        return new ResponseEntity<>(new CommonDTO(postListDTO, HttpStatus.OK.value(), "OK"), HttpStatus.OK);
+    }
+
+    // 게시글 목록 조회 - 페이징 처리
+    // 페이징 처리를 위한 데이터 요청 형식 : post/list?page=0&size=20&sort=title,desc
+    @GetMapping("/listPaging")
+    public ResponseEntity<?> findAll(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+                                     Pageable pageable) {
+        Page<PostListDTO> postListDTO = postService.findAll(pageable);
+        return new ResponseEntity<>(new CommonDTO(postListDTO, HttpStatus.OK.value(), "OK"), HttpStatus.OK);
     }
 
     // 게시글 상세 조회
