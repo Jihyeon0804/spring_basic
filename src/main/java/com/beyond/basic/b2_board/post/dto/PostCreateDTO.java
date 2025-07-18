@@ -23,11 +23,13 @@ public class PostCreateDTO {
     @NotNull                    // 숫자는 @NotEmpty 사용 불가
     private Long authorId;
 
+
     public Post toEntity(Author author) {
         return Post.builder()
                 .title(this.title)
                 .contents(this.contents)
                 .author(author)
+                .delYn("N")
                 .build();
     }
 }
