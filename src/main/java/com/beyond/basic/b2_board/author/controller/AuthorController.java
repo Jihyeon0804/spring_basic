@@ -5,6 +5,7 @@ import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
 import com.beyond.basic.b2_board.author.dto.CommonDTO;
 import com.beyond.basic.b2_board.author.service.AuthorService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,8 @@ public class AuthorController {
     // 회원 가입
     @PostMapping("/create")
 //    public ResponseEntity<String> save(@RequestBody AuthorCreateDTO authorCreateDTO) {          // 입력값과 도메인 필드가 다르면 새로운 객체 생성(사용자 입력과 응답 DTO 따로 설계; DTO 에는 setter 설정 포함(@Data), 일반 도메인에는 getter만(@DataX))
-    public ResponseEntity<?> save(@RequestBody AuthorCreateDTO authorCreateDTO) {
+    // DTO에 있는 validation 어노테이션 (@NotEmpty, @Size 등)과 controller의 @Valid는 한 쌍
+    public ResponseEntity<?> save(@Valid @RequestBody AuthorCreateDTO authorCreateDTO) {
 //    public String save(@RequestBody AuthorCreateDTO authorCreateDTO) {
         /*
         try {       // error 발생했는데  try-catch 해주지 않으면 500 Internal Server Error
