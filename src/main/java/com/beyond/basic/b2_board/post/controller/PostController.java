@@ -46,7 +46,14 @@ public class PostController {
     public ResponseEntity<?> findAll(@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
                                      Pageable pageable) {
         Page<PostListDTO> postListDTO = postService.findAll(pageable);
-        return new ResponseEntity<>(new CommonDTO(postListDTO, HttpStatus.OK.value(), "OK"), HttpStatus.OK);
+//        return new ResponseEntity<>(new CommonDTO(postListDTO, HttpStatus.OK.value(), "OK"), HttpStatus.OK);
+        return new ResponseEntity<>(
+                CommonDTO.builder()
+                .result(postListDTO)
+                .status_code(HttpStatus.OK.value())
+                .status_message("OK")
+                .build()
+                , HttpStatus.OK);
     }
 
     // 게시글 상세 조회
