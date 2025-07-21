@@ -6,6 +6,7 @@ import com.beyond.basic.b2_board.author.dto.AuthorDetailDTO;
 import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
 import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
 import com.beyond.basic.b2_board.author.repository.AuthorRepository;
+import com.beyond.basic.b2_board.post.domain.Post;
 import com.beyond.basic.b2_board.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 
-@Transactional      // 스프링에서 메서드 단위로 트랜잭션 처리하고, 만약 예외(unchecked) 발생 시 자동 롤백 처리 지원
+@Transactional      // 스프링에서 메서드 단위로 트랜잭션 처리(Commit)하고, 만약 예외(unchecked) 발생 시 자동 롤백 처리 지원
 @Service            // transaction 처리가 없는 경우에는 @Component로 대체 가능
 @RequiredArgsConstructor
 public class AuthorService {
@@ -61,6 +62,23 @@ public class AuthorService {
 //        Author author = new Author(authorCreateDTO.getName(), authorCreateDTO.getEmail(), authorCreateDTO.getPassword());
         // toEntity 패턴을 통해 Author 객체 조립을 공통화
         Author author = authorCreateDTO.authorToEntity();
+//        this.authorRepository.save(author);
+
+        // cascading 테스트 : 회원이 생성될 때, 곧바로 "가입 인사" 글을 생성하는 상황
+        // 방법 1) 직접 Post 객체 생성 후 저장
+        Post post = Post.builder()
+                .title("안녕하세요")
+                .contents(authorCreateDTO.getName() + "입니다. 반갑습니다.")
+                // author 객체가 db에 save 되는 순간 엔티티 매니저와 영속성 컨텍스트에 의해 author 객체에도 id값 생성
+                .author(author)                // .author(author) 하게 되면 author 에는 id가 포함되어 있지 않음
+                .build();
+
+//        postRepository.save(post);
+
+        // 방법 2) cascade 옵션 활용
+        // postRepository.save(post) 하지 않아도 저장되는 이유가 Author 엔티티 클래스에 postList 필드에 cascade 옵션을 걸어주었기 때문
+        author.getPostList().add(post);
+        // post 빌더 패턴 위에 위치해도 됨. cascade 옵션을 설정했기 때문에 값이 변경되면 어차피 저장 후 매핑됨
         this.authorRepository.save(author);
     }
 
@@ -113,7 +131,6 @@ public class AuthorService {
         // dirty checking : 객체를 수정한 후에 별도의 update 쿼리 발생시키지 않아도
         // 영속성 컨텍스트에 의해 객체 변경 사항 자동 DB 반영
         author.updatePw(authorUpdatePwDTO.getPassword());
-        System.out.println(author.getPassword());
     }
 
     // 회원 탈퇴
