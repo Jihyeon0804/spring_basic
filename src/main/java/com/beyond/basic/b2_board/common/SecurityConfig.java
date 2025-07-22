@@ -3,6 +3,7 @@ package com.beyond.basic.b2_board.common;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity           // @PreAuthorize 사용하기 위한 설정
 public class SecurityConfig {   // 로그인 관련 설정 정보
 
     private final JwtTokenFilter jwtTokenFilter;
@@ -29,6 +31,8 @@ public class SecurityConfig {   // 로그인 관련 설정 정보
     // filer 계층에서 filter 로직을 커스텀
     @Bean       // return 되는 객체를 싱글톤 객체로 생성
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        
+        // authentication 객체가 생성되지 않으면 Controller까지 가지도 못함
         return httpSecurity
                 // cors() : 특정 도메인에 대한 허용 정책, postman 은 cors 정책에 적용X (웹 브라우저가 아니기 때문에 도메인 없음)
                 .cors(c -> c.configurationSource(corsConfiguration()))
