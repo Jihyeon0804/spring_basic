@@ -1,19 +1,18 @@
 package com.beyond.basic.b2_board.author.service;
 
 import com.beyond.basic.b2_board.author.domain.Author;
-import com.beyond.basic.b2_board.author.dto.AuthorCreateDTO;
-import com.beyond.basic.b2_board.author.dto.AuthorDetailDTO;
-import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
-import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
+import com.beyond.basic.b2_board.author.dto.*;
 import com.beyond.basic.b2_board.author.repository.AuthorRepository;
 import com.beyond.basic.b2_board.post.domain.Post;
 import com.beyond.basic.b2_board.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -45,6 +44,7 @@ public class AuthorService {
 //    private final AuthorMybatisRepository authorRepository;
     private final AuthorRepository authorRepository;
     private final PostRepository postRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 회원 가입
     // 객체 조립은 서비스 담당
@@ -59,9 +59,11 @@ public class AuthorService {
             throw new IllegalArgumentException("비밀번호가 너무 짧습니다.");
         }
 
+        // 비밀번호 암호화
+        String encodedPassoword = passwordEncoder.encode(authorCreateDTO.getPassword());
 //        Author author = new Author(authorCreateDTO.getName(), authorCreateDTO.getEmail(), authorCreateDTO.getPassword());
         // toEntity 패턴을 통해 Author 객체 조립을 공통화
-        Author author = authorCreateDTO.authorToEntity();
+        Author author = authorCreateDTO.authorToEntity(encodedPassoword);
 //        this.authorRepository.save(author);
 
         // cascading 테스트 : 회원이 생성될 때, 곧바로 "가입 인사" 글을 생성하는 상황
@@ -80,6 +82,26 @@ public class AuthorService {
         author.getPostList().add(post);
         // post 빌더 패턴 위에 위치해도 됨. cascade 옵션을 설정했기 때문에 값이 변경되면 어차피 저장 후 매핑됨
         this.authorRepository.save(author);
+    }
+
+    public Author doLogin(AuthorLoginDTO authorLoginDTO) {
+        Optional<Author> optionalAuthor = authorRepository.findByEmail(authorLoginDTO.getEmail());
+
+        boolean check = true;
+        if (!optionalAuthor.isPresent()) {
+            check = false;
+        } else {
+            // 비밀번호 일치 여부 검증 : matches 함수를 통해서 암호화되지 않은 값을 다시 암호화하여 db의 password를 검증
+            if (!passwordEncoder.matches(authorLoginDTO.getPassword(), optionalAuthor.get().getPassword())) {
+                check = false;
+            }
+        }
+
+        if (!check) {
+            throw new IllegalArgumentException("email 또는 비밀번호가 일치하지 않습니다.");
+        }
+
+        return optionalAuthor.get();
     }
 
     @Transactional(readOnly = true)
