@@ -33,12 +33,13 @@ public class AuthorCreateDTO {
 //        return new Author(this.name, this.email, this.password, this.role);
 //    }
 
-    public Author authorToEntity() {
+    public Author authorToEntity(String encodedPassword) {
         // ⭐ 빌더 패턴은 매개 변수의 개수와 매개 변수의 순서에 상관 없이 객체 생성 가능
         return Author.builder()
                 .name(this.name)
                 .email(this.email)
-                .password(this.password)
+//                .password(this.password)
+                .password(encodedPassword)
                 .role(this.role)
                 .build();
     }
