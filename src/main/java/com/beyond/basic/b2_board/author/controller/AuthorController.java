@@ -1,10 +1,9 @@
 package com.beyond.basic.b2_board.author.controller;
 
-import com.beyond.basic.b2_board.author.dto.AuthorCreateDTO;
-import com.beyond.basic.b2_board.author.dto.AuthorListDTO;
-import com.beyond.basic.b2_board.author.dto.AuthorUpdatePwDTO;
-import com.beyond.basic.b2_board.author.dto.CommonDTO;
+import com.beyond.basic.b2_board.author.domain.Author;
+import com.beyond.basic.b2_board.author.dto.*;
 import com.beyond.basic.b2_board.author.service.AuthorService;
+import com.beyond.basic.b2_board.common.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +18,7 @@ import java.util.List;
 public class AuthorController {
 
     private final AuthorService authorService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 회원 가입
     @PostMapping("/create")
@@ -43,6 +43,17 @@ public class AuthorController {
         this.authorService.save(authorCreateDTO);
         return new ResponseEntity<>("OK", HttpStatus.CREATED);
     }
+
+    // 로그인 : /author/doLogin
+    @PostMapping("/doLogin")
+    public ResponseEntity<?> doLogin(@RequestBody AuthorLoginDTO authorLoginDTO) {
+        Author author = authorService.doLogin(authorLoginDTO);
+
+        // 토큰 생성 및 return
+        String token = jwtTokenProvider.createAtToken(author);
+        return new ResponseEntity<>(new CommonDTO(token, HttpStatus.OK.value(), "token is created"), HttpStatus.OK);
+    }
+
     
     // 회원 목록 조회 : /author/list
     @GetMapping("/list")
