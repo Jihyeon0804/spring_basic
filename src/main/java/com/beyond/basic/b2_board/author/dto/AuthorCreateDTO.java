@@ -26,7 +26,8 @@ public class AuthorCreateDTO {
     private String password;
 
     // 문자열로 값이 넘어오면 Role에 값으로 매핑
-    private Role role = Role.USER;
+    // Admin 권한을 DTO로 받는 건 말이 안됨
+//    private Role role = Role.USER;
 
     // 로그인 시 사용 (회원 가입 시 받는 정보를 Author 에 담기)
 //    public Author authorToEntity() {
@@ -40,7 +41,8 @@ public class AuthorCreateDTO {
                 .email(this.email)
 //                .password(this.password)
                 .password(encodedPassword)
-                .role(this.role)
+//                .role(this.role)
+                .role(Role.USER)
                 .build();
     }
 }
