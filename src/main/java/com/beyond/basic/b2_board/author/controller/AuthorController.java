@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,16 +56,21 @@ public class AuthorController {
     }
 
     
-    // 회원 목록 조회 : /author/list
+    // 회원 목록 조회 : /author/list => admin 만 가능하도록 설정
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")           // JwtTokenFilter 에서 authentication 객체를 만들 때 ROLE_ 붙인 걸 떼서 검사
+    // 권한이 여러개 인 경우
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('SELLER')")
     public List<AuthorListDTO> findAll() {
         return authorService.findAll();
     }
     
 
-    // 회원 상세 조회 by id : /author/detail/1
+    // 회원 상세 조회 by id : /author/detail/1 => admin 만 가능하도록 설정
     // 서버에서 별도의 try-catch를 하지 않으면, 에러 발생 시 500 error + 스프링의 포맷으로 error return
     @GetMapping("/detail/{id}")
+    // ADMIN 권한이 있는 지를 authentication 객체에서 쉽게 확인
+    @PreAuthorize("hasRole('ADMIN')")
 //    public Author findById(@PathVariable Long id) {
 //    public AuthorDetailDTO findById(@PathVariable Long id) {
     public ResponseEntity<?> findById(@PathVariable Long id) {
