@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class PostDetailDTO {
 
     private Long id;
+    private String category;
     private String title;
     private String contents;
     private String authorEmail;
@@ -32,6 +33,7 @@ public class PostDetailDTO {
     public static PostDetailDTO fromEntity(Post post) {
         return PostDetailDTO.builder()
                 .id(post.getId())
+                .category(post.getCategory())
                 .title(post.getTitle())
                 .contents(post.getContents())
                 .authorEmail(post.getAuthor().getEmail())
