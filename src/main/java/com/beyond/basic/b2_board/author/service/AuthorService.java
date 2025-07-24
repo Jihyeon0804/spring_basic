@@ -3,14 +3,19 @@ package com.beyond.basic.b2_board.author.service;
 import com.beyond.basic.b2_board.author.domain.Author;
 import com.beyond.basic.b2_board.author.dto.*;
 import com.beyond.basic.b2_board.author.repository.AuthorRepository;
-import com.beyond.basic.b2_board.post.domain.Post;
 import com.beyond.basic.b2_board.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -46,10 +51,14 @@ public class AuthorService {
     private final AuthorRepository authorRepository;
     private final PostRepository postRepository;
     private final PasswordEncoder passwordEncoder;
+    private final S3Client s3Client;
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     // 회원 가입
     // 객체 조립은 서비스 담당
-    public void save(AuthorCreateDTO authorCreateDTO) {
+    public void save(AuthorCreateDTO authorCreateDTO, MultipartFile profileImage) {
         // 이메일 중복 검증
         if (authorRepository.findByEmail(authorCreateDTO.getEmail()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
@@ -67,8 +76,35 @@ public class AuthorService {
         Author author = authorCreateDTO.authorToEntity(encodedPassoword);
 //        this.authorRepository.save(author);
 
+        this.authorRepository.save(author);
+
+        // 이미지 파일명 설정
+        String fileName = "user-" + author.getId() + "-profileImage-" + profileImage.getOriginalFilename();
+
+        // 저장 객체 구성
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(fileName)
+                .contentType(profileImage.getContentType())         // jpeg, mp4, ...
+                .build();
+
+        // 이미지 업로드 (byte 형태로 업로드)
+        try {
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(profileImage.getBytes()));
+        } catch (IOException e) {
+            // checked 를 unchecked로 바꿔 전체 rollback 되도록 예외 처리
+            throw new IllegalArgumentException("이미지 업로드 완료");
+        }
+
+        // S3에서 이미지 url 추출
+        String imgUrl = s3Client.utilities().getUrl(a -> a.bucket(bucket).key(fileName)).toExternalForm();
+
+        // author 객체에 update
+        author.updateImageUrl(imgUrl);
+
         // cascading 테스트 : 회원이 생성될 때, 곧바로 "가입 인사" 글을 생성하는 상황
         // 방법 1) 직접 Post 객체 생성 후 저장
+        /*
         Post post = Post.builder()
                 .title("안녕하세요")
                 .contents(authorCreateDTO.getName() + "입니다. 반갑습니다.")
@@ -76,14 +112,15 @@ public class AuthorService {
                 // author 객체가 db에 save 되는 순간 엔티티 매니저와 영속성 컨텍스트에 의해 author 객체에도 id값 생성
                 .author(author)                // .author(author) 하게 되면 author 에는 id가 포함되어 있지 않음
                 .build();
+        */
 
 //        postRepository.save(post);
 
         // 방법 2) cascade 옵션 활용
         // postRepository.save(post) 하지 않아도 저장되는 이유가 Author 엔티티 클래스에 postList 필드에 cascade 옵션을 걸어주었기 때문
-        author.getPostList().add(post);
+//        author.getPostList().add(post);
         // post 빌더 패턴 위에 위치해도 됨. cascade 옵션을 설정했기 때문에 값이 변경되면 어차피 저장 후 매핑됨
-        this.authorRepository.save(author);
+//        this.authorRepository.save(author);
     }
 
     public Author doLogin(AuthorLoginDTO authorLoginDTO) {
