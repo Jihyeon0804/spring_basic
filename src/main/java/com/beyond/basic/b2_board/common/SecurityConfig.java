@@ -23,6 +23,8 @@ import java.util.Arrays;
 public class SecurityConfig {   // 로그인 관련 설정 정보
 
     private final JwtTokenFilter jwtTokenFilter;
+    private final JwtAuthenticationHandler jwtAuthenticationHandler;
+    private final JwtAuthorizationHandler jwtAuthorizationHandler;
 
 
     // 내가 만든 객체는 @Component, 외부 라이브러리를 활용한 객체는 @Bean + @Configuration
@@ -47,6 +49,10 @@ public class SecurityConfig {   // 로그인 관련 설정 정보
                 // 검증 단계
                 // token을 검정하고, token 검증을 통해 Authentication 객체 생성
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(e ->
+                        e.authenticationEntryPoint(jwtAuthenticationHandler)           // 401의 경우
+                                .accessDeniedHandler(jwtAuthorizationHandler)          // 403의 경우
+                )
                 // 예외 API 정책 설정
                 // authenticated() : 예외를 제외한 모든 요청에 대해서 Authentication 객체가 생성되기를 요구
                 .authorizeHttpRequests(a -> a.requestMatchers("/author/create", "/author/doLogin")
