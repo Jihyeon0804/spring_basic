@@ -59,7 +59,7 @@ public class AuthorController {
     // 회원 목록 조회 : /author/list => admin 만 가능하도록 설정
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")           // JwtTokenFilter 에서 authentication 객체를 만들 때 ROLE_ 붙인 걸 떼서 검사
-    // 권한이 여러개 인 경우
+    // 권한이 n개인 경우 아래처럼 사용 (토큰 만들 때도 authorities.add를 n개 해주어야 함)
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('SELLER')")
     public List<AuthorListDTO> findAll() {
         return authorService.findAll();
@@ -70,6 +70,7 @@ public class AuthorController {
     // 서버에서 별도의 try-catch를 하지 않으면, 에러 발생 시 500 error + 스프링의 포맷으로 error return
     @GetMapping("/detail/{id}")
     // ADMIN 권한이 있는 지를 authentication 객체에서 쉽게 확인
+    // 권한이 없을 경우 filterChain 에서 에러 발생
     @PreAuthorize("hasRole('ADMIN')")
 //    public Author findById(@PathVariable Long id) {
 //    public AuthorDetailDTO findById(@PathVariable Long id) {
@@ -86,6 +87,11 @@ public class AuthorController {
         }
          */
         return new ResponseEntity<>(new CommonDTO(authorService.findById(id), HttpStatus.OK.value(), "author is found"), HttpStatus.OK);
+    }
+
+    @GetMapping("/myInfo")
+    public ResponseEntity<?> myInfo() {
+        return new ResponseEntity<>(new CommonDTO(authorService.myInfo(), HttpStatus.OK.value(), "myInfo is found"), HttpStatus.OK);
     }
     
     
