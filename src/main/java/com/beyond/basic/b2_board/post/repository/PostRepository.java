@@ -4,6 +4,7 @@ import com.beyond.basic.b2_board.author.domain.Author;
 import com.beyond.basic.b2_board.post.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -50,6 +51,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // Pageable 객체 안에는 페이지 size, 페이지 번호, 정렬 기준 등이 포함
     Page<Post> findAllByDelYnAndAppointment(Pageable pageable, String delYn, String appointment);
 
+    // paging 처리 + 검색(Specification)
+    Page<Post> findAll(Specification<Post> specification, Pageable pageable);
 
     Page<Post> findAll(Pageable pageable);
 
