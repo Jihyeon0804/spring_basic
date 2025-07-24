@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 @Builder
 public class PostCreateDTO {
 
+    private String category;
+
     @NotEmpty
     private String title;
 
@@ -35,6 +37,7 @@ public class PostCreateDTO {
 
     public Post toEntity(Author author, LocalDateTime appointmentTime) {
         return Post.builder()
+                .category(this.category)
                 .title(this.title)
                 .contents(this.contents)
                 .author(author)
