@@ -36,6 +36,8 @@ public class Author extends BaseTimeEntity {
     @Builder.Default                    // 빌터 패턴에서 변수 초기화 (디폴트 값) 설정 시 @Builder.Default 필수
     private Role role = Role.USER;      // 기본값을 user로 설정, 값이 할당되면 해당 값으로 세팅
 
+    private String profileImage;
+
     // @OneToMany는 선택 사항, @ManyToOne과 달리 fetch 옵션의 default가 FetchType.LAZY
     // mappedBy 에는 ManyToOne 쪽에 변수명을 문자열로 지정
     // mappedBy를 지정해야 하는 이유는 FK 관리를 매핑되어 있는 (Post) 쪽에서 한다는 의미 => 연관 관계의 주인 설정
@@ -71,5 +73,9 @@ public class Author extends BaseTimeEntity {
 
     public AuthorListDTO listFromEntity() {
         return new AuthorListDTO(this.id, this.name, this.email);
+    }
+
+    public void updateImageUrl(String imageUrl) {
+        this.profileImage = imageUrl;
     }
 }
