@@ -5,6 +5,8 @@ import com.beyond.basic.b2_board.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Builder
 @NoArgsConstructor
@@ -24,7 +26,14 @@ public class Post extends BaseTimeEntity {
     private String contents;
 
     // 게시글 삭제 여부 (게시글 목록 조회 시 "Y"는 제외)
-    private String delYn;
+    @Builder.Default
+    private String delYn = "N";
+    
+    // 게시글 예약 여부
+    @Builder.Default
+    private String appointment = "N";
+    
+    private LocalDateTime appointmentTime;
 
     // FK 설정 시 ManyToOne 필수
     // ManyToOne 에서는 default FetchType.EAGER (즉시 로딩) : 참조 테이블 바로 조회; author 객체를 사용하지 않아도 author 테이블로 쿼리 발생
@@ -33,5 +42,9 @@ public class Post extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)      // post 입장에서 n:1 관계
     @JoinColumn(name = "author_id")         // FK 관계성 설정 어노테이션
     private Author author;
+
+    public void updateAppointment(String appointment) {
+        this.appointment = appointment;
+    }
 
 }
