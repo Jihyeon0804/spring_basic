@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,7 +26,19 @@ public class AuthorController {
     @PostMapping("/create")
 //    public ResponseEntity<String> save(@RequestBody AuthorCreateDTO authorCreateDTO) {          // 입력값과 도메인 필드가 다르면 새로운 객체 생성(사용자 입력과 응답 DTO 따로 설계; DTO 에는 setter 설정 포함(@Data), 일반 도메인에는 getter만(@DataX))
     // DTO에 있는 validation 어노테이션 (@NotEmpty, @Size 등)과 controller의 @Valid는 한 쌍
-    public ResponseEntity<?> save(@Valid @RequestBody AuthorCreateDTO authorCreateDTO) {
+//    public ResponseEntity<?> save(@Valid @RequestBody AuthorCreateDTO authorCreateDTO) {
+    
+    /*
+    * 아래 코드 postman 테스트 데이터 예시
+    * 1) multipart-formdata 선택
+    * 2) authorCreateDTO 를 text로 { "name": "dddd", "email": "ddddddddddd@email.com", "password": "123123123"}
+    *    세팅 하면서 context-Type을 application/json 으로 설정
+    * 3) profileImage는 file로 세팅하면서 context_Type을 multipart/form-data 로 설정
+    *
+    */
+    public ResponseEntity<?> save(@RequestPart(name = "authorCreateDTO") @Valid AuthorCreateDTO authorCreateDTO,
+                                  @RequestPart(name = "profileImage") MultipartFile profileImage) {
+        System.out.println(profileImage.getOriginalFilename());
 //    public String save(@RequestBody AuthorCreateDTO authorCreateDTO) {
         /*
         try {       // error 발생했는데  try-catch 해주지 않으면 500 Internal Server Error
@@ -41,7 +54,7 @@ public class AuthorController {
         }
         */
         // controllerAdvice가 없었으면 위와 같이 개별적인 예외 처리가 필요하나, 이제는 전역적인 예외 처리가 가능
-        this.authorService.save(authorCreateDTO);
+        this.authorService.save(authorCreateDTO, profileImage);
         return new ResponseEntity<>("OK", HttpStatus.CREATED);
     }
 
