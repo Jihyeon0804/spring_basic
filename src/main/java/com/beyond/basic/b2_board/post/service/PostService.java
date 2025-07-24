@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,6 @@ public class PostService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // token 안에 들어있는 정보의 email 이기 때문에 조작 불가, 이걸로 모든 인증 진행
         String email = authentication.getName();            // claims 의 subject : email
-        System.out.println(email);
 
         Author author = authorRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("없는 사용자입니다."));
@@ -46,7 +47,19 @@ public class PostService {
         // authorId가 실제 있는 지 없는 지 검증 필요
 //        Author author = authorRepository.findById(postCreateDTO.getAuthorId())
 //                .orElseThrow(() -> new EntityNotFoundException("없는 사용자입니다."));
-        postRepository.save(postCreateDTO.toEntity(author));
+
+        LocalDateTime appointmentTime = null;
+
+        if (postCreateDTO.getAppointment().equals("Y")) {
+            // 예외 처리 - 예약 설정 해놓고 시간을 입력하지 않았거나 비워져 있는 경우
+            if (postCreateDTO.getAppointmentTime() == null || postCreateDTO.getAppointmentTime().isEmpty()) {
+                throw new IllegalArgumentException("시간 정보가 비워져 있습니다.");
+            }
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+            appointmentTime = LocalDateTime.parse(postCreateDTO.getAppointmentTime(), dateTimeFormatter);
+        }
+
+        postRepository.save(postCreateDTO.toEntity(author, appointmentTime));
 
     }
 
@@ -82,7 +95,8 @@ public class PostService {
     public Page<PostListDTO> findAll(Pageable pageable) {
         // 페이징 처리 findAll()
 //        Page<Post> postList = postRepository.findAll(pageable);
-        Page<Post> postList = postRepository.findAllByDelYn(pageable, "N");
+//        Page<Post> postList = postRepository.findAllByDelYn(pageable, "N");
+        Page<Post> postList = postRepository.findAllByDelYnAndAppointment(pageable, "N", "N");
         return postList.map(a -> PostListDTO.fromEntity(a));
     }
 }
