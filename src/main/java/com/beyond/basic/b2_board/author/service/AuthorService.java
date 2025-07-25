@@ -15,7 +15,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -78,29 +77,31 @@ public class AuthorService {
 
         this.authorRepository.save(author);
 
-        // 이미지 파일명 설정
-        String fileName = "user-" + author.getId() + "-profileImage-" + profileImage.getOriginalFilename();
+        if (profileImage != null) {
+            // 이미지 파일명 설정
+            String fileName = "user-" + author.getId() + "-profileImage-" + profileImage.getOriginalFilename();
 
-        // 저장 객체 구성
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(fileName)
-                .contentType(profileImage.getContentType())         // jpeg, mp4, ...
-                .build();
+            // 저장 객체 구성
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileName)
+                    .contentType(profileImage.getContentType())         // jpeg, mp4, ...
+                    .build();
 
-        // 이미지 업로드 (byte 형태로 업로드)
-        try {
-            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(profileImage.getBytes()));
-        } catch (IOException e) {
-            // checked 를 unchecked로 바꿔 전체 rollback 되도록 예외 처리
-            throw new IllegalArgumentException("이미지 업로드 완료");
+            // 이미지 업로드 (byte 형태로 업로드)
+            try {
+                s3Client.putObject(putObjectRequest, RequestBody.fromBytes(profileImage.getBytes()));
+            } catch (Exception e) {
+                // checked 를 unchecked로 바꿔 전체 rollback 되도록 예외 처리
+                throw new IllegalArgumentException("이미지 업로드 실패");
+            }
+
+            // S3에서 이미지 url 추출
+            String imgUrl = s3Client.utilities().getUrl(a -> a.bucket(bucket).key(fileName)).toExternalForm();
+
+            // author 객체에 update
+            author.updateImageUrl(imgUrl);
         }
-
-        // S3에서 이미지 url 추출
-        String imgUrl = s3Client.utilities().getUrl(a -> a.bucket(bucket).key(fileName)).toExternalForm();
-
-        // author 객체에 update
-        author.updateImageUrl(imgUrl);
 
         // cascading 테스트 : 회원이 생성될 때, 곧바로 "가입 인사" 글을 생성하는 상황
         // 방법 1) 직접 Post 객체 생성 후 저장
@@ -197,14 +198,14 @@ public class AuthorService {
         Author author = authorRepository.findByEmail(authorUpdatePwDTO.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 이메일입니다."));
         // dirty checking : 객체를 수정한 후에 별도의 update 쿼리 발생시키지 않아도
-        // 영속성 컨텍스트에 의해 객체 변경 사항 자동 DB 반영
+        // "영속성 컨텍스트"에 의해 객체 변경 사항 자동 DB 반영
         author.updatePw(authorUpdatePwDTO.getPassword());
     }
 
     // 회원 탈퇴
     public void delete(Long id) {
         Author author = authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
-        authorRepository.delete(author);
+        authorRepository.delete(author);        // 객체로 삭제하는 것이 좀 더 일반적
 //        authorRepository.findById(id).orElseThrow(() -> new NoSuchElementException("없는 사용자입니다."));
 //        authorRepository.delete(id);
     }
