@@ -26,7 +26,7 @@ public class PostScheduler {
 //    0 0 * * * * : 매월, 매일, 매 시간, 0분, 0초에
 //    0 0 11 * * * : 매월, 매일, 11시, 0분, 0초에
 //    0 0/1 * * * * : 매월, 매일, 매 시간, 1분마다
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(cron = "0 0/1 * * * *")              // application 메인 클래스에 @EnableScheduling 설정 필수
     public void postScheduler() {
         log.info("===== 예약 스케쥴러 시작 ======");
         List<Post> posts =postRepository.findByAppointment("Y");
