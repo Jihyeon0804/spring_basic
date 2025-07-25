@@ -49,6 +49,7 @@ public class JwtTokenFilter extends GenericFilter {
             // GrantedAuthority - SimpleGrantedAuthority : 상속 관계
             List<GrantedAuthority> authorities = new ArrayList<>();
             // authentication 객체를 만들 때 권한은 ROLE_ 이라는 키워드를 붙여서 만들어 주는 것이 추후 문제 발생X
+            // Controller 단에서 @PreAuthorize 사용하기 위함
             authorities.add(new SimpleGrantedAuthority("ROLE_" + claims.get("role")));
 
             // claims.getSubject() : JwtTokenProvider 에서 setSubject 한 값이 들어있음 (여기서는 email)
