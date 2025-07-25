@@ -36,9 +36,10 @@ public class AuthorController {
     * 3) profileImage는 file로 세팅하면서 context_Type을 multipart/form-data 로 설정
     *
     */
+    // MultipartFile 타입의 @RequestPart required 옵션 기본값 설정이 true 라서 false 설정 필요
     public ResponseEntity<?> save(@RequestPart(name = "authorCreateDTO") @Valid AuthorCreateDTO authorCreateDTO,
-                                  @RequestPart(name = "profileImage") MultipartFile profileImage) {
-        System.out.println(profileImage.getOriginalFilename());
+                                  @RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
+//        System.out.println(profileImage.getOriginalFilename());
 //    public String save(@RequestBody AuthorCreateDTO authorCreateDTO) {
         /*
         try {       // error 발생했는데  try-catch 해주지 않으면 500 Internal Server Error
@@ -83,7 +84,7 @@ public class AuthorController {
     // 서버에서 별도의 try-catch를 하지 않으면, 에러 발생 시 500 error + 스프링의 포맷으로 error return
     @GetMapping("/detail/{id}")
     // ADMIN 권한이 있는 지를 authentication 객체에서 쉽게 확인
-    // 권한이 없을 경우 filterChain 에서 에러 발생
+    // 권한이 없을 경우 SecurityConfig의 filterChain 에서 에러 발생
     @PreAuthorize("hasRole('ADMIN')")
 //    public Author findById(@PathVariable Long id) {
 //    public AuthorDetailDTO findById(@PathVariable Long id) {
