@@ -38,16 +38,17 @@ public class Author extends BaseTimeEntity {
 
     private String profileImage;
 
-    // @OneToMany는 선택 사항, @ManyToOne과 달리 fetch 옵션의 default가 FetchType.LAZY
-    // mappedBy 에는 ManyToOne 쪽에 변수명을 문자열로 지정
+    // @OneToMany는 완전한 선택 사항, @ManyToOne과 달리 fetch 옵션의 default가 FetchType.LAZY
+    // mappedBy 에는 ManyToOne 쪽에 변수명을 문자열로 지정 (Post 엔티티 객체에 있는 Author 필드의 변수명)
     // mappedBy를 지정해야 하는 이유는 FK 관리를 매핑되어 있는 (Post) 쪽에서 한다는 의미 => 연관 관계의 주인 설정
-    // cascade : 부모 객체의 변화에 따라 자식 객체가 같이 변하는 옵션 1) CascadeType.PERSIST : 저장 2) CascadeType.REMOVE : 삭제(물리)
-    // orphanRemoval = true : 자식의 자식까지 모두 삭제하는 경우
+    // cascade : 부모 객체의 변화에 따라 자식 객체가 같이 변하는 옵션 1) CascadeType.PERSIST : 저장(생성) 2) CascadeType.REMOVE : 삭제(물리)
+    // orphanRemoval = true : 자식의 자식까지(연쇄적으로 이어져 있는 경우) 모두 삭제하는 경우
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    List<Post> postList = new ArrayList<>();             // @OneToMany 설정 시 List 초기화 필수, @Builder.Default 설정 필수
+    // @OneToMany 설정 시 List 초기화 필수(postList.add()하는 부분에서 NullPointerException 발생 가능, @Builder.Default 설정 필수
+    List<Post> postList = new ArrayList<>();
 
-    // Address 엔티티 객체에 있는 Author의 필드명 작성
+    // mappedBy는 Address 엔티티 객체에 있는 Author의 필드의 변수명 작성 (Author 엔티티 객체를 의미하는 게 아님)
     @OneToOne(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Address address;
     
